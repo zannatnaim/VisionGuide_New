@@ -1,4 +1,7 @@
+ultralytics
+opencv-python-headless
 streamlit
+streamlit-webrtc
 pillow
 numpy
-ultralytics
+pyttsx3
