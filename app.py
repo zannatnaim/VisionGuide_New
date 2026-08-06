@@ -1,5 +1,4 @@
 import streamlit as st
-import cv2
 from PIL import Image
 from ultralytics import YOLO
 from utils.speaker import speak, describe_scene
@@ -29,6 +28,7 @@ with tab1:
     st.warning("Click 'Start Camera' to begin")
     
     if st.button("Start Camera"):
+        import cv2
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
             st.error("Cannot open camera.")
