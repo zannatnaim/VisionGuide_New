@@ -1,24 +1,25 @@
-import pyttsx3
+from gtts import gTTS
+import io
 
 def speak(text, rate=150):
+    """Generate speech audio bytes from text using gTTS. Returns audio bytes or None on failure."""
     try:
-        engine = pyttsx3.init()
-        engine.setProperty('rate', rate)
-        engine.setProperty('volume', 0.9)
-        engine.say(text)
-        engine.runAndWait()
-        return True
+        tts = gTTS(text=text, lang='en')
+        audio_fp = io.BytesIO()
+        tts.write_to_fp(audio_fp)
+        audio_fp.seek(0)
+        return audio_fp.read()
     except Exception as e:
         print(f"⚠️ Voice error: {e}")
-        return False
+        return None
 
 def describe_scene(detections):
     if not detections:
         return "I don't see anything ahead."
-    
+
     objects = [d['label'] for d in detections if d['confidence'] > 0.5]
     unique_objects = list(set(objects))
-    
+
     if not unique_objects:
         return "Nothing detected clearly."
     elif len(unique_objects) == 1:
