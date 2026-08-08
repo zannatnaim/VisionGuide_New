@@ -114,7 +114,14 @@ with tab1:
         key="visionguide-live",
         video_processor_factory=YOLOVideoProcessor,
         rtc_configuration=RTC_CONFIGURATION,
-        media_stream_constraints={"video": True, "audio": False},
+        media_stream_constraints={
+            "video": {
+                "width": {"ideal": 320},
+                "height": {"ideal": 240},
+                "frameRate": {"ideal": 10, "max": 15},
+            },
+            "audio": False,
+        },
         async_processing=True,
     )
 
