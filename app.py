@@ -53,30 +53,44 @@ class YOLOVideoProcessor(VideoProcessorBase):
     def __init__(self):
         self.confidence_threshold = 0.5
         self.result_queue = queue.Queue(maxsize=1)
+        self.frame_count = 0
+        self.process_every_n_frames = 5
+        self.last_annotated = None
 
     def recv(self, frame):
+        self.frame_count += 1
         img = frame.to_ndarray(format="bgr24")
-        results = model(img, verbose=False)
-        annotated = results[0].plot()
 
-        detections = []
-        for r in results:
-            for box in r.boxes:
-                conf = float(box.conf[0])
-                if conf > self.confidence_threshold:
-                    cls = int(box.cls[0])
-                    label = model.names[cls]
-                    detections.append({'label': label, 'confidence': conf})
+        try:
+            if self.frame_count % self.process_every_n_frames == 0:
+                results = model(img, verbose=False, imgsz=320)
+                annotated = results[0].plot()
+                self.last_annotated = annotated
 
-        scene_desc = describe_scene(detections)
+                detections = []
+                for r in results:
+                    for box in r.boxes:
+                        conf = float(box.conf[0])
+                        if conf > self.confidence_threshold:
+                            cls = int(box.cls[0])
+                            label = model.names[cls]
+                            detections.append({'label': label, 'confidence': conf})
 
-        if not self.result_queue.full():
-            try:
-                self.result_queue.put_nowait(scene_desc)
-            except queue.Full:
-                pass
+                scene_desc = describe_scene(detections)
 
-        return av.VideoFrame.from_ndarray(annotated, format="bgr24")
+                if not self.result_queue.full():
+                    try:
+                        self.result_queue.put_nowait(scene_desc)
+                    except queue.Full:
+                        pass
+            else:
+                annotated = self.last_annotated if self.last_annotated is not None else img
+
+            return av.VideoFrame.from_ndarray(annotated, format="bgr24")
+
+        except Exception as e:
+            print(f"⚠️ Frame processing error: {e}")
+            return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 
 with tab1:
