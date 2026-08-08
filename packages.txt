@@ -1,4 +1,5 @@
 libgl1
+pkg-config
 libavdevice-dev
 libavfilter-dev
 libavformat-dev
