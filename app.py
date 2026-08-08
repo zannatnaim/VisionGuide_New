@@ -45,7 +45,7 @@ with st.sidebar:
     st.write("Model: YOLOv8n")
     st.write("Classes: 80 (COCO)")
 
-tab1, tab2 = st.tabs(["Live Camera", "Upload Image"])
+tab1, tab2, tab3 = st.tabs(["Live Camera", "Snapshot Camera", "Upload Image"])
 
 
 def run_detection(pil_image, threshold):
@@ -61,6 +61,16 @@ def run_detection(pil_image, threshold):
                 label = model.names[cls]
                 detections.append({'label': label, 'confidence': conf})
     return annotated, detections
+
+
+def show_results_and_speak(image, annotated, threshold, key_prefix):
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.image(image, caption="Original Image", use_column_width=True)
+
+    with col2:
+        st.image(annotated, channels="BGR", caption="Detected Objects", use_column_width=True)
 
 
 class YOLOVideoProcessor(VideoProcessorBase):
@@ -108,7 +118,7 @@ class YOLOVideoProcessor(VideoProcessorBase):
 
 
 with tab1:
-    st.info("Allow camera access in your browser to start live detection.")
+    st.info("Allow camera access in your browser to start live detection. If this doesn't load, try the 'Snapshot Camera' tab instead.")
 
     webrtc_ctx = webrtc_streamer(
         key="visionguide-live",
@@ -165,6 +175,31 @@ with tab1:
                 break
 
 with tab2:
+    st.info("Take a photo using your camera. This works reliably on any network.")
+    camera_image = st.camera_input("Camera", key="snapshot_camera")
+
+    if camera_image is not None:
+        try:
+            image = Image.open(camera_image).convert("RGB")
+        except Exception as e:
+            st.error(f"Could not read camera image: {e}")
+            image = None
+
+        if image is not None:
+            annotated, detections = run_detection(image, confidence_threshold)
+
+            st.image(annotated, channels="BGR", caption="Detected Objects", use_column_width=True)
+
+            if detections:
+                scene_desc = describe_scene(detections)
+                st.success(f"✅ {scene_desc}")
+                audio_bytes = speak(scene_desc, voice_rate)
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3", autoplay=True)
+            else:
+                st.warning("No objects detected with current confidence threshold.")
+
+with tab3:
     uploaded_file = st.file_uploader("📤 Upload an image", type=['jpg', 'png', 'jpeg'])
 
     if uploaded_file is not None:
