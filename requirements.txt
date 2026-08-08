@@ -7,4 +7,4 @@ pillow==10.3.0
 numpy==1.26.4
 streamlit-webrtc==0.47.9
 gTTS==2.5.1
-av==10.0.0
+av==12.3.0
