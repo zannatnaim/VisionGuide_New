@@ -143,12 +143,12 @@ with tab2:
             col1, col2 = st.columns(2)
 
             with col1:
-                st.image(image, caption="Original Image", use_container_width=True)
+                st.image(image, caption="Original Image", use_column_width=True)
 
             annotated, detections = run_detection(image, confidence_threshold)
 
             with col2:
-                st.image(annotated, channels="BGR", caption="Detected Objects", use_container_width=True)
+                st.image(annotated, channels="BGR", caption="Detected Objects", use_column_width=True)
 
             if detections:
                 scene_desc = describe_scene(detections)
