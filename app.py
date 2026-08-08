@@ -34,8 +34,8 @@ with st.sidebar:
 tab1, tab2 = st.tabs(["Live Camera", "Upload Image"])
 
 
-def run_detection(pil_or_array_image, threshold):
-    results = model(pil_or_array_image)
+def run_detection(pil_image, threshold):
+    results = model(pil_image)
     annotated = results[0].plot()
 
     detections = []
@@ -133,25 +133,31 @@ with tab2:
     uploaded_file = st.file_uploader("📤 Upload an image", type=['jpg', 'png', 'jpeg'])
 
     if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        col1, col2 = st.columns(2)
+        try:
+            image = Image.open(uploaded_file).convert("RGB")
+        except Exception as e:
+            st.error(f"Could not read this image file: {e}")
+            image = None
 
-        with col1:
-            st.image(image, caption="Original Image", use_container_width=True)
+        if image is not None:
+            col1, col2 = st.columns(2)
 
-        annotated, detections = run_detection(image, confidence_threshold)
+            with col1:
+                st.image(image, caption="Original Image", use_container_width=True)
 
-        with col2:
-            st.image(annotated, channels="BGR", caption="Detected Objects", use_container_width=True)
+            annotated, detections = run_detection(image, confidence_threshold)
 
-        if detections:
-            scene_desc = describe_scene(detections)
-            st.success(f"✅ {scene_desc}")
-            audio_bytes = speak(scene_desc, voice_rate)
-            if audio_bytes:
-                st.audio(audio_bytes, format="audio/mp3", autoplay=True)
-        else:
-            st.warning("No objects detected with current confidence threshold.")
+            with col2:
+                st.image(annotated, channels="BGR", caption="Detected Objects", use_container_width=True)
+
+            if detections:
+                scene_desc = describe_scene(detections)
+                st.success(f"✅ {scene_desc}")
+                audio_bytes = speak(scene_desc, voice_rate)
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3", autoplay=True)
+            else:
+                st.warning("No objects detected with current confidence threshold.")
 
 st.markdown("---")
 st.caption("Powered by YOLOv8 | Built for Accessibility")
