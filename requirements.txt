@@ -1,7 +1,6 @@
-ultralytics
-opencv-python-headless
-streamlit
-streamlit-webrtc
-pillow
-numpy
-pyttsx3
+streamlit==1.36.0
+ultralytics==8.2.50
+opencv-python-headless==4.9.0.80
+pillow==10.3.0
+numpy==1.26.4
+pyttsx3==2.90
